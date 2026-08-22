@@ -60,18 +60,22 @@
 
 ## 安装
 
+从 GitHub 直接安装（推荐，构建产物已入库）：
+
 ```sh
-dsh plugin --profile web add dsh-visualizer
+dsh plugin --profile web add github:Moses14159/dsh-visualizer
 ```
 
-也可以从 GitHub 安装（构建产物已入库，克隆后即用）：
+也可以先克隆、再从本地路径安装：
 
 ```sh
 git clone https://github.com/Moses14159/dsh-visualizer.git
 dsh plugin --profile web add /path/to/dsh-visualizer
 ```
 
-> 需要本机已安装 DSH（`deepseek-harness`）并能启动 `dsh web`。依赖 DSH 的 `@deepseek-ai/dsh-client-runtime`、`@deepseek-ai/dsh-llm`、`@deepseek-ai/dsh-tools`（见 `peerDependencies`）。
+> - 从 Git 安装的插件会在安装时通过 `prepare` 脚本构建。pnpm 为安全起见会拦截构建脚本，若它提示授权，把对应的 `allowBuilds` 键加到 profile 的 `pnpm-workspace.yaml` 后再执行即可。
+> - 待 `dsh-visualizer` 发布到 npm 后，也可以用裸名安装：`dsh plugin --profile web add dsh-visualizer`。
+> - 需要本机已安装 DSH（`deepseek-harness`）并能启动 `dsh web`。依赖 DSH 的 `@deepseek-ai/dsh-client-runtime`、`@deepseek-ai/dsh-llm`、`@deepseek-ai/dsh-tools`（见 `peerDependencies`）。
 
 ## 用法
 
