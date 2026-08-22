@@ -55,8 +55,10 @@
   "files": [
     "lib/index.js",
     "lib/client.js",
+    "lib/client-registry.js",
     "lib/types/**/*.d.ts",
     "src",
+    "docs",
     "dsh.plugin.json",
     "cordis.patch.yml",
     "README.md",
