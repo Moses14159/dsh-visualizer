@@ -1,58 +1,104 @@
-<svg width="880" height="420" viewBox="0 0 880 420" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, 'PingFang SC', 'Microsoft YaHei', sans-serif">
-  <rect width="880" height="420" fill="#f2f4f7"/>
-  <g font-size="14" font-weight="600" fill="#1f2937">
-    <text x="24" y="34">📊 结构化图表（ChartSpec）</text>
-    <text x="24" y="240">🖼 Widget（SVG / HTML）</text>
+<svg width="900" height="604" viewBox="0 0 900 604" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#8a94a2"/>
+    </marker>
+  </defs>
+
+  <!-- background -->
+  <rect width="900" height="604" fill="#f7f9fc"/>
+
+  <!-- title -->
+  <text x="40" y="44" font-size="21" font-weight="700" fill="#1f2937">dsh-visualizer · 架构</text>
+  <text x="40" y="70" font-size="12.5" fill="#67707f">不改 DSH 源码 · 复用已有会话事件 · host 与客户端共用同一套纯函数校验</text>
+
+  <!-- lane panels -->
+  <rect x="44" y="100" width="396" height="428" rx="14" fill="#fbfcfe" stroke="#eef1f6"/>
+  <rect x="464" y="100" width="396" height="428" rx="14" fill="#fbfcfe" stroke="#eef1f6"/>
+
+  <!-- lane headers -->
+  <text x="64" y="122" font-size="14" font-weight="700" fill="#4166e6">结构化图表</text>
+  <text x="484" y="122" font-size="14" font-weight="700" fill="#4166e6">SVG / HTML 组件</text>
+
+  <!-- shared left/right box geometry: left x=64 w=356 ; right x=484 w=356 ; row tops -->
+  <!-- row1 y=126, row2 y=208, row3 y=290, row4 y=372, row5 y=454 ; box h=60 -->
+
+  <!-- row1 -->
+  <g>
+    <rect x="64" y="126" width="356" height="60" rx="10" fill="#eef2fb" stroke="#c7d3f4"/>
+    <text x="242" y="162" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1f2937">模型 · 调用 visualize(spec)</text>
+  </g>
+  <g>
+    <rect x="484" y="126" width="356" height="60" rx="10" fill="#eef2fb" stroke="#c7d3f4"/>
+    <text x="662" y="162" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1f2937">模型 · 正文流 ```svg / ```html</text>
   </g>
 
-  <!-- Row 1: chart -->
-  <g fill="#ffffff" stroke="#e4e7ec">
-    <rect x="24" y="52" width="150" height="72" rx="12"/>
-    <rect x="230" y="52" width="180" height="72" rx="12"/>
-    <rect x="466" y="52" width="180" height="72" rx="12"/>
-    <rect x="700" y="52" width="156" height="72" rx="12"/>
+  <!-- row2 -->
+  <g>
+    <rect x="64" y="208" width="356" height="60" rx="10" fill="#ffffff" stroke="#d8dde6"/>
+    <text x="242" y="244" text-anchor="middle" font-size="13.5" fill="#1f2937">host execute</text>
+    <text x="242" y="262" text-anchor="middle" font-size="12" fill="#67707f">parseChartSpec 校验</text>
   </g>
-  <g font-size="13" fill="#1f2937" text-anchor="middle">
-    <text x="99" y="82">模型调用</text><text x="99" y="102">visualize(spec)</text>
-    <text x="320" y="82">host 校验 parseChartSpec</text><text x="320" y="102">tool/call + tool/result</text>
-    <text x="556" y="82">visualizer-chart 折叠</text><text x="556" y="102">re-校验 · 纯数据</text>
-    <text x="778" y="82">echarts 渲染</text><text x="778" y="102">主题跟随 DSH</text>
-  </g>
-  <g stroke="#9aa4b2" stroke-width="2" fill="none">
-    <path d="M176 88 H226"/>
-    <path d="M412 88 H462"/>
-    <path d="M648 88 H696"/>
-  </g>
-  <g font-size="11" fill="#67707f" text-anchor="middle">
-    <text x="201" y="78">JSON</text><text x="437" y="78">会话日志</text><text x="672" y="78">结点</text>
+  <g>
+    <rect x="484" y="208" width="356" height="60" rx="10" fill="#ffffff" stroke="#d8dde6"/>
+    <text x="662" y="244" text-anchor="middle" font-size="13.5" fill="#1f2937">host execute</text>
+    <text x="662" y="262" text-anchor="middle" font-size="12" fill="#67707f">parseWidgetSpec 校验</text>
   </g>
 
-  <!-- Row 2: widget (stream) -->
-  <g fill="#ffffff" stroke="#e4e7ec">
-    <rect x="24" y="258" width="150" height="72" rx="12"/>
-    <rect x="230" y="258" width="180" height="72" rx="12"/>
-    <rect x="466" y="258" width="180" height="72" rx="12"/>
-    <rect x="700" y="258" width="156" height="72" rx="12"/>
+  <!-- row3 -->
+  <g>
+    <rect x="64" y="290" width="356" height="60" rx="10" fill="#ffffff" stroke="#d8dde6"/>
+    <text x="242" y="326" text-anchor="middle" font-size="13.5" fill="#1f2937">tool/call + tool/result</text>
   </g>
-  <g font-size="13" fill="#1f2937" text-anchor="middle">
-    <text x="99" y="288">模型正文</text><text x="99" y="308">```svg / ```html</text>
-    <text x="320" y="288">assistant/chunk 事件</text><text x="320" y="308">逐 token 增量</text>
-    <text x="556" y="288">visualizer-widget 折叠</text><text x="556" y="308">流式扫描器 · 逐帧</text>
-    <text x="778" y="288">沙箱 iframe 渲染</text><text x="778" y="308">sandbox + CSP</text>
+  <g>
+    <rect x="484" y="290" width="356" height="60" rx="10" fill="#ffffff" stroke="#d8dde6"/>
+    <text x="662" y="326" text-anchor="middle" font-size="13.5" fill="#1f2937">assistant/chunk（逐 token）</text>
   </g>
-  <g stroke="#9aa4b2" stroke-width="2" fill="none">
-    <path d="M176 294 H226"/>
-    <path d="M412 294 H462"/>
-    <path d="M648 294 H696"/>
+
+  <!-- row4 -->
+  <g>
+    <rect x="64" y="372" width="356" height="60" rx="10" fill="#ffffff" stroke="#d8dde6"/>
+    <text x="242" y="408" text-anchor="middle" font-size="13.5" fill="#1f2937">visualizer-chart 折叠</text>
+    <text x="242" y="426" text-anchor="middle" font-size="12" fill="#67707f">对结果再次校验</text>
   </g>
-  <g font-size="11" fill="#67707f" text-anchor="middle">
-    <text x="201" y="284">流</text><text x="437" y="284">会话日志</text><text x="672" y="284">结点</text>
+  <g>
+    <rect x="484" y="372" width="356" height="60" rx="10" fill="#ffffff" stroke="#d8dde6"/>
+    <text x="662" y="408" text-anchor="middle" font-size="13.5" fill="#1f2937">visualizer-widget 折叠</text>
+    <text x="662" y="426" text-anchor="middle" font-size="12" fill="#67707f">流式扫描器 · 逐帧</text>
   </g>
+
+  <!-- row5 (inside security boundary) -->
+  <g>
+    <rect x="64" y="454" width="356" height="60" rx="10" fill="#fdf6f0" stroke="#f0cbb8"/>
+    <text x="242" y="490" text-anchor="middle" font-size="13.5" fontWeight="600" fill="#8b3d12">echarts 渲染</text>
+    <text x="242" y="508" text-anchor="middle" font-size="12" fill="#a8653a">主题跟随 DSH</text>
+  </g>
+  <g>
+    <rect x="484" y="454" width="356" height="60" rx="10" fill="#fdf6f0" stroke="#f0cbb8"/>
+    <text x="662" y="490" text-anchor="middle" font-size="13.5" font-weight="600" fill="#8b3d12">沙箱 iframe 渲染</text>
+    <text x="662" y="508" text-anchor="middle" font-size="12" fill="#a8653a">sandbox + CSP</text>
+  </g>
+
+  <!-- vertical arrows within each column -->
+  <g stroke="#8a94a2" stroke-width="1.6" marker-end="url(#arrow)">
+    <!-- left column -->
+    <line x1="242" y1="186" x2="242" y2="206"/>
+    <line x1="242" y1="268" x2="242" y2="288"/>
+    <line x1="242" y1="350" x2="242" y2="370"/>
+    <line x1="242" y1="432" x2="242" y2="452"/>
+    <!-- right column -->
+    <line x1="662" y1="186" x2="662" y2="206"/>
+    <line x1="662" y1="268" x2="662" y2="288"/>
+    <line x1="662" y1="350" x2="662" y2="370"/>
+    <line x1="662" y1="432" x2="662" y2="452"/>
+  </g>
+
+  <!-- security boundary -->
+  <rect x="48" y="440" width="848" height="86" rx="16" fill="none" stroke="#e07a3d" stroke-width="1.8" stroke-dasharray="7 5"/>
+  <text x="868" y="456" text-anchor="end" font-size="12" font-weight="700" fill="#c05a1e">安全边界（渲染侧）</text>
 
   <!-- bottom note -->
-  <rect x="24" y="352" width="832" height="46" rx="12" fill="#eef2fb"/>
-  <g font-size="12.5" fill="#1f2937">
-    <text x="40" y="372">复用已有 assistant/chunk + tool/call + tool/result 事件，不改 DSH 源码</text>
-    <text x="40" y="390" fill="#67707f">纯函数契约在 host 校验 / 客户端折叠 / 单测三方共享，任何失败均降级</text>
-  </g>
+  <rect x="48" y="538" width="848" height="46" rx="12" fill="#eef2fb"/>
+  <text x="472" y="562" text-anchor="middle" font-size="12.5" font-weight="600" fill="#1f2937">复用已有 assistant/chunk + tool/call + tool/result 事件 · 不改 DSH 源码</text>
+  <text x="472" y="580" text-anchor="middle" font-size="12" fill="#67707f">任何校验 / 渲染失败均降级（不渲染该节点 / 退回普通代码块或 JSON 卡）</text>
 </svg>
