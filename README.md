@@ -1,14 +1,32 @@
 # dsh-visualizer
 
-> 让模型在对话流里**边生成边渲染**可视化内容：流式 SVG/HTML Widget + 结构化图表（ChartSpec → echarts）。
-> 一个**不改动 DSH 源码**的外部插件，打通「模型输出 → 会话日志 → 客户端折叠 → 前端安全渲染」完整链路。
+> 一个**不改动 DSH 源码**的外部插件：让模型在对话流里**边生成边渲染**可视化内容——流式 SVG/HTML 组件，以及结构化图表（ChartSpec → echarts）。
 
-<p>
-  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
-  <img alt="Node >= 20" src="https://img.shields.io/badge/node-%3E%3D%2020-43853d.svg">
-  <img alt="tests" src="https://img.shields.io/badge/tests-97%20passing-brightgreen.svg">
-  <img alt="built with dsh plugin" src="https://img.shields.io/badge/DSH%20plugin-external-4166e6.svg">
-</p>
+[![License: MIT](https://img.shields.io/badge/license-MIT-royalblue)](LICENSE)
+[![Node.js: 20+](https://img.shields.io/badge/Node.js-20%2B-brightgreen)](https://nodejs.org)
+[![Tests: 97 passing](https://img.shields.io/badge/tests-97%20passing-brightgreen)](#)
+[![CI](https://img.shields.io/github/actions/workflow/status/Moses14159/dsh-visualizer/ci.yml?branch=main)](https://github.com/Moses14159/dsh-visualizer/actions)
+
+---
+
+## 这是什么
+
+在 DSH（DeepSeek Harness）的对话里，让模型**直接生成可视内容**，安全地渲染到对话流中：
+
+- **结构化图表**——`visualize` 工具的 `spec`，用 echarts 渲染（折线 / 柱状 / 面积 / 饼图 / 散点）。
+- **SVG / HTML 组件**——模型写了 ```svg / ```html 围栏，**逐 token 流式**渲染到沙箱 iframe；也可用 `visualize` 的 `widget` 参数整件交付。
+
+它复用 DSH **已有**的 `assistant/chunk` 与 `tool/call` + `tool/result` 事件，**不改 DSH 源码**。
+
+## 特性
+
+- **两类产物、三条交付路径**：`visualize(spec)` 出图表；正文 ```svg / ```html 围栏**流式**出组件；`visualize(widget)` 出完整组件。
+- **流式渲染**：复用已有 `assistant/chunk` 事件拿到逐 token 输出，组件随文本流**逐帧更新**。
+- **双端校验**：host `execute` 与客户端折叠共用**同一套纯函数解析器**（`chartspec` / `widget`），模型漂移不会静默通过。
+- **安全隔离**：组件代码**原样**插入 `sandbox=""` iframe + CSP `default-src 'none'`，无 sanitizer 可绕过。
+- **渲染体验**：图表主题采样 `--dsw-alias-*` 令牌；SVG 按固有宽高比自适应高度；卡片带「适应 / 1.5× / 2×」缩放与状态徽标（生成中 / 已截断 / 完成）。
+- **优雅降级**：任何校验 / 渲染失败都不留空白、不抛错——退回普通代码块或 JSON 卡。
+- **纯函数、可测试**：核心逻辑均为无 DSH 依赖的纯模块，97 个单测在 Node 里独立跑。
 
 ## 效果一览
 
@@ -22,7 +40,7 @@
 <br>
 
 <div align="center">
-  <img src="docs/screenshot-widget.png" alt="HTML Widget：visualize(widget) → 沙箱 iframe" width="720"><br>
+  <img src="docs/screenshot-widget.png" alt="HTML 组件：visualize(widget) → 沙箱 iframe" width="720"><br>
   <sub>组件 · <code>visualize(widget)</code> → 沙箱 iframe</sub>
 </div>
 
@@ -40,78 +58,32 @@
 <br>
 <sub>左：柱状图 · 右：SVG 组件 · 下左：HTML 组件 · 下右：流式渲染（```svg 围栏逐 token 边生成边更新）</sub>
 
-## 特性
-
-- **两类产物、三条路径**：`visualize(spec)` 出图表；模型正文 ```svg/```html 围栏**流式**出 Widget；`visualize(widget)` 出完整组件。
-- **流式渲染**：复用 DSH **已有**的 `assistant/chunk` 事件，拿到逐 token 模型输出，widget 随文本流逐帧更新。
-- **不改 DSH 源码**：host 侧走 `ctx.tools.register`，客户端走 `conversation.chat.node` 槽位，复用已有事件家族。
-- **双端校验**：host `execute` 与客户端折叠共用**同一套纯函数解析器**（`chartspec` / `widget`），drift 不会静默通过。
-- **安全隔离**：Widget 代码**原样**插入 `sandbox=""` iframe + CSP `default-src 'none'`，无 sanitizer 可绕过。
-- **渲染体验**：图表主题采样 `--dsw-alias-*` 令牌；SVG 按固有宽高比自适应高度；卡片带「适应 / 1.5× / 2×」缩放；状态徽标（生成中 / 已截断 / 完成）。
-- **优雅降级**：任何校验 / 渲染失败都不留空白、不抛错中断——退回普通代码块或 JSON 卡。
-- **纯函数、可测试**：核心逻辑全部是无 DSH 依赖的纯模块，97 个单测在 Node 里独立跑。
-
-## 架构
-
-![Architecture](docs/architecture.svg)
-
-```text
-模型 ──正文流: ```svg …```──▶ llm/stream
-                               │ agent-loop 逐 chunk 落盘
-                               ▼
-                     assistant/chunk 会话事件（已存在的事件家族）
-                               │ apiproxy 实时广播到 Web 客户端
-                               ▼
-               visualizer-widget Definition（widget-fold.ts 流式扫描器）
-                               │ match/start/update · animation-frame 节流
-                               ▼
-               ChatNode kind=visualizer-widget（边生成边更新）
-                               ▼
-           VisualizerWidgetNodeView ──▶ 沙箱 iframe（srcdoc + sandbox + CSP）
-
-模型 ──visualize(spec|widget)──▶ ctx.tools.register（host half, visualize-tool.ts）
-                               │ 校验 + tool/result 事件
-                               ▼
-                      session log（tool/call + tool/result）
-                               ▼
-      visualizer-chart Definition ──▶ echarts 节点（图表）
-      visualizer-widget Definition ──▶ 沙箱 iframe 节点（widget 参数交付）
-```
-
-### 为什么这个形态可行（源码级事实）
-
-- `assistant/chunk` 是**已存在**的会话事件家族：agent-loop 把每个 `StreamChunk` 落盘为 `{ turn, step, chunk }`，Web 客户端的流式文本就是折叠这些事件得来的——插件复用同一事件流即可拿到逐 token 输出，**无需新增 host 侧事件家族**。
-- `conversationEvents` 是 cordis `Service`，外部插件可 inject；`visualizer-widget` 与内置 `assistant-step` **并行**折叠同一批 `assistant/chunk` 事件，互不干扰。
-- `conversation.chat.node` 是 keyed slot（`replaceRisk: 'none'`），外部插件按字符串名注册 `{ key: 'visualizer-chart' | 'visualizer-widget' }` 即增量贡献。
-- `ChatNodeViewProps` / `ConversationNodeDefinition` / `ChatNodeDataMap` 都是**纯类型**，构建期擦除，不触发客户端 bundle 的纯度门。
-- **确定性**：`match` 只读当前事件；同一 Context 每个事件携带或独立推导同一稳定 id（`step:<turn>:<step>` / `widget:<callId>`）；`update` 按日志 `seq` 折叠，**可重放**。
-
 ## 安装
 
 ```sh
 dsh plugin --profile web add dsh-visualizer
 ```
 
-也可以从 GitHub 安装（构建产物已在仓库中，克隆后即可用）：
+也可以从 GitHub 安装（构建产物已入库，克隆后即用）：
 
 ```sh
 git clone https://github.com/Moses14159/dsh-visualizer.git
 dsh plugin --profile web add /path/to/dsh-visualizer
 ```
 
-> 需要本地已安装 DSH（`deepseek-harness`）并能启动 `dsh web`。插件依赖 DSH 的 `@deepseek-ai/dsh-client-runtime`、`@deepseek-ai/dsh-llm`、`@deepseek-ai/dsh-tools`（见 `peerDependencies`）。
+> 需要本机已安装 DSH（`deepseek-harness`）并能启动 `dsh web`。依赖 DSH 的 `@deepseek-ai/dsh-client-runtime`、`@deepseek-ai/dsh-llm`、`@deepseek-ai/dsh-tools`（见 `peerDependencies`）。
 
-## 使用
+## 用法
 
-安装后在对话里：
+安装后，在对话里告诉模型即可：
 
-- 说「**用 visualize 画个图**」→ 模型会调用 `visualize` 工具传 `spec`；
+- 说「**用 visualize 画个图**」→ 模型调用 `visualize` 工具传 `spec`；
 - 说「**写一个 SVG 徽章 / HTML 组件**」→ 模型在正文直接流式输出 ```svg / ```html 围栏，**生成过程中即可看到逐帧渲染**；
-- 模型也可以调用 `visualize` 传 `widget` 参数**交付完整组件**（该路径经 host 校验、持久化、可重放）。
+- 模型也可用 `visualize` 传 `widget` 参数**整件交付**（经 host 校验、持久化、可重放）。
 
 ### 工具载荷
 
-`visualize` 接收二选一：
+`visualize` 二选一：
 
 ```jsonc
 // 结构化图表
@@ -139,22 +111,42 @@ dsh plugin --profile web add /path/to/dsh-visualizer
 ```
 ````
 
-## 载荷上限
+## 架构
 
-- **图表**：≤ 8 个 series、≤ 500 个点、标签 ≤ 120 字符；
-- **Widget**：单件 ≤ 128 KB（UTF-8）、每节点 ≤ 12 件 / 总计 ≤ 512 KB，超限截断或省略并显示「已截断」徽标。
+![架构图](docs/architecture.svg)
+
+### 两条交付路径
+
+| 产物 | 触发 | 会话事件 | 折叠 | 渲染 |
+|---|---|---|---|---|
+| 结构化图表 | `visualize(spec)` | tool/call + tool/result | `visualizer-chart` | echarts |
+| 组件（整件交付） | `visualize(widget)` | tool/call + tool/result | `visualizer-widget` | 沙箱 iframe |
+| 组件（流式） | 正文 ```svg / ```html | `assistant/chunk` | `visualizer-widget`（逐帧更新） | 沙箱 iframe |
+
+### 为什么这个形态可行（源码级事实）
+
+- `assistant/chunk` 是**已存在**的会话事件家族：agent-loop 把每个 `StreamChunk` 落盘为 `{ turn, step, chunk }`，Web 客户端的流式文本正是折叠这些事件得来的——插件复用同一事件流即可拿到逐 token 输出，**无需新增 host 侧事件家族**。
+- `conversationEvents` 是 cordis `Service`，外部插件可 inject；`visualizer-widget` 与内置 `assistant-step` **并行**折叠同一批 `assistant/chunk` 事件，互不干扰。
+- `conversation.chat.node` 是 keyed slot（`replaceRisk: 'none'`），外部插件按字符串名注册 `{ key: 'visualizer-chart' | 'visualizer-widget' }` 即增量贡献。
+- `ChatNodeViewProps` / `ConversationNodeDefinition` / `ChatNodeDataMap` 都是**纯类型**，构建期擦除，不触发客户端 bundle 的纯度门。
+- **确定性**：`match` 只读当前事件；同一 Context 每个事件携带或独立推导同一稳定 id（`step:<turn>:<step>` / `widget:<callId>`）；`update` 按日志 `seq` 折叠，**可重放**。
 
 ## 安全边界
 
 | 层 | 处理 |
 |---|---|
 | 模型 → spec / widget | host `execute` 用 `parseChartSpec` / `parseWidgetSpec` 校验；非法载荷拒绝执行（工具报错） |
-| 正文流 → widget | 客户端 `WidgetScanner` 只认行首 ```svg / ```html 围栏；widget 代码**不做标记校验**（流式中任意字节都可能是合法前缀），安全边界在渲染侧 |
+| 正文流 → widget | 客户端 `WidgetScanner` 只认行首 ```svg / ```html 围栏；组件代码**不做标记校验**（流式中任意字节都可能是合法前缀），安全边界在渲染侧 |
 | session log → 客户端 | Definition 的 `update`/`fallback` 对结果文本**再次**解析；`assistant/message` 全文是冷回放的恢复源 |
-| 渲染（Widget） | 双层隔离：iframe `sandbox=""`（禁脚本/同源/表单/弹窗/导航，opaque origin）+ srcdoc 注入 CSP `default-src 'none'`；代码**原样插入**，无 sanitizer 可绕过 |
+| 渲染（组件） | 双层隔离：iframe `sandbox=""`（禁脚本/同源/表单/弹窗/导航，opaque origin）+ srcdoc 注入 CSP `default-src 'none'`；代码**原样插入**，无 sanitizer 可绕过 |
 | 渲染（图表） | ChartSpec 是纯数据 → echarts `setOption`；无 HTML/SVG 注入面 |
 
 任何校验 / 渲染失败都**降级**（不渲染该节点 / 围栏仍以普通代码块显示 / JSON 卡），绝不让对话流出现空白行或抛错中断。
+
+## 载荷上限
+
+- **图表**：≤ 8 个 series、≤ 500 个点、标签 ≤ 120 字符；
+- **组件**：单件 ≤ 128 KB（UTF-8）、每节点 ≤ 12 件 / 总计 ≤ 512 KB，超限截断或省略并显示「已截断」徽标。
 
 ## 开发
 
@@ -171,9 +163,9 @@ pnpm render-demo # 重新生成 docs/ 里的演示图（需本机 Chrome）
 
 ## 已知边界
 
-- **图表仍是「整图出现」**：ChartSpec 经工具调用交付，没有逐 token 流式图表（工具参数本身不是流式的）；围栏 Widget 才是流式路径。
-- **围栏原文与 Widget 卡并存**：模型写出的代码块仍会按普通 markdown 代码块渲染（作为「源码」视图），Widget 卡在流中增量渲染——两者不互斥。
-- **Widget 是静态的**：sandbox 禁脚本，交互式组件（按钮逻辑、动画脚本）不会执行；需要交互时请用图表或让组件纯展示。
+- **图表仍是「整图出现」**：ChartSpec 经工具调用交付，没有逐 token 流式图表（工具参数本身不是流式的）；围栏组件才是流式路径。
+- **围栏原文与组件卡并存**：模型写出的代码块仍会按普通 markdown 代码块渲染（作为「源码」视图），组件卡在流中增量渲染——两者不互斥。
+- **组件是静态的**：sandbox 禁脚本，交互式组件（按钮逻辑、动画脚本）不会执行；需要交互时请用图表或让组件纯展示。
 - **不包含 mermaid**：v1 只支持 svg/html 两种围栏，mermaid 图请走普通代码块或后续版本。
 - **围栏必须在行首**（≤ 3 空格缩进），行内 ```svg 不是围栏；围栏内容里的 ``` 单独成行会闭合围栏（CommonMark 语义）。
 - echarts 按需 `import('echarts')` 内联进客户端 bundle（registry 路由只服务单文件，暂不能 code-split）。
