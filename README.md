@@ -115,6 +115,51 @@ dsh plugin --profile web add /path/to/dsh-visualizer
 ```
 ````
 
+## 示例
+
+在对话里直接这样说，就能看到效果（这些图取自真实对话）。
+
+### 生成一张天气卡片
+
+> 帮我生成一张深圳现在的天气卡片
+
+模型会调用 `visualize` 传 `widget`（HTML），渲染成沙箱组件卡片：
+
+<div align="center">
+  <img src="docs/screenshot-widget.png" alt="天气卡片" width="660"><br>
+  <sub><code>visualize(widget)</code> · 沙箱 iframe 渲染的 HTML 卡片</sub>
+</div>
+
+### 画一个折线图
+
+> 用 visualize 画一张北京明天 24 小时的气温变化图
+
+模型会传 `spec`（`line`），用 echarts 渲染：
+
+<div align="center">
+  <img src="docs/screenshot-chart.png" alt="折线图" width="660"><br>
+  <sub><code>visualize(spec)</code> · echarts 渲染（主题跟随 DSH）</sub>
+</div>
+
+### 边生成边渲染（流式）
+
+> 写一个深圳实时天气的 SVG 卡片
+
+模型会在正文写 ```svg 围栏，边生成边渲染：
+
+<div align="center">
+  <img src="docs/preview-stream.gif" alt="流式渲染 GIF" width="440"><br>
+  <sub>正文 <code>```svg</code> 围栏 · 逐 token 流式渲染</sub>
+</div>
+
+### 一次要多种
+
+> 同时画一张柱状图、一张饼图，再写一个天气卡片
+
+模型会**多次**调用 `visualize`，分别产出图表与组件，在对话流里排开。
+
+> 💡 提示：以上示例要求模型**已加载 `visualize` 工具**（安装插件后即注册）。若模型没有主动用该工具，直接描述你想要的内容即可，它会优先调用 `visualize`。
+
 ## 架构
 
 ![架构图](docs/architecture.svg)
