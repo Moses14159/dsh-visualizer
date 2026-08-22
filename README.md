@@ -12,21 +12,33 @@
 
 ## 效果一览
 
-**结构化图表**（`visualize` 工具交付，echarts 渲染，主题跟随 DSH）：
+**真实对话截图**（DSH Web 客户端内渲染）：
 
-![Chart demo](docs/demo-chart.png)
+<div align="center">
+  <img src="docs/screenshot-chart.png" alt="结构化图表：visualize(spec) → echarts" width="720"><br>
+  <sub>结构化图表 · <code>visualize(spec)</code> → echarts（主题跟随 DSH）</sub>
+</div>
 
-**SVG Widget**（沙箱 iframe 渲染，卡片头部含类型 / 标题 / 状态徽标）：
+<br>
 
-![SVG widget demo](docs/demo-widget-svg.png)
+<div align="center">
+  <img src="docs/screenshot-widget.png" alt="HTML Widget：visualize(widget) → 沙箱 iframe" width="720"><br>
+  <sub>组件 · <code>visualize(widget)</code> → 沙箱 iframe</sub>
+</div>
 
-**HTML Widget**（同样走沙箱 iframe）：
+**更多渲染示例**（由插件自身代码渲染生成）：
 
-![HTML widget demo](docs/demo-widget-html.png)
+<div align="center">
+  <img src="docs/preview-chart-bar.png" alt="柱状图" width="420">
+  <img src="docs/preview-widget-svg.png" alt="SVG 组件" width="420">
+</div>
 
-**流式渲染**（模型在正文写 ```svg 围栏 → 逐 token 边生成边更新）：
-
-![Streaming widget demo](docs/demo-stream.gif)
+<div align="center">
+  <img src="docs/preview-widget-html.png" alt="HTML 组件" width="420">
+  <img src="docs/preview-stream.gif" alt="流式渲染 GIF" width="420">
+</div>
+<br>
+<sub>左：柱状图 · 右：SVG 组件 · 下左：HTML 组件 · 下右：流式渲染（```svg 围栏逐 token 边生成边更新）</sub>
 
 ## 特性
 
