@@ -1,0 +1,18 @@
+{
+  "id": "dsh-external/dsh-visualizer",
+  "version": "0.3.0",
+  "main": "./lib/index.js",
+  "description": "模型在对话流中流式生成 SVG/HTML Widget（```svg/```html 围栏逐 token 渲染于沙箱 iframe）与结构化图表（visualize 工具的 ChartSpec → echarts），复用已有 assistant/chunk + tool/result 事件，不修改 DSH 源码",
+  "engines": {
+    "dsh": ">=0.0.1"
+  },
+  "contributes": {
+    "tools": [
+      "visualize"
+    ],
+    "skills": []
+  },
+  "client": {
+    "main": "./lib/client.js"
+  }
+}

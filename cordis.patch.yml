@@ -1,0 +1,9 @@
+# dsh-visualizer bundle patch
+#
+# `dsh plugin --profile <name> add dsh-visualizer@<version>` reconciles
+# dsh.profile.bundles against installed packages and appends
+# `dsh-visualizer` to the bundle stack; the profile boot merges THIS patch
+# (a single insert of the plugin row). No profile file edits needed.
+- insert:
+    - id: visualizer
+      name: 'dsh-visualizer'
