@@ -1,6 +1,8 @@
 # dsh-visualizer
 
-> 一个**不改动 DSH 源码**的外部插件：让模型在对话流里**边生成边渲染**可视化内容——流式 SVG/HTML 组件，以及结构化图表（ChartSpec → echarts）。
+**English** · [简体中文](README.zh.md)
+
+> An external plugin that **does not modify DSH source**: lets the model **render visuals on the fly** in the conversation — streaming SVG/HTML widgets and structured charts (ChartSpec → echarts).
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-royalblue)](LICENSE)
 [![Node.js: 20+](https://img.shields.io/badge/Node.js-20%2B-brightgreen)](https://nodejs.org)
@@ -9,221 +11,221 @@
 
 ---
 
-## 这是什么
+## What is this
 
-在 DSH（DeepSeek Harness）的对话里，让模型**直接生成可视内容**，安全地渲染到对话流中：
+Inside a DSH (DeepSeek Harness) conversation, let the model **produce visual content directly** and render it safely into the chat:
 
-- **结构化图表**——`visualize` 工具的 `spec`，用 echarts 渲染（折线 / 柱状 / 面积 / 饼图 / 散点）。
-- **SVG / HTML 组件**——模型写了 ```svg / ```html 围栏，**逐 token 流式**渲染到沙箱 iframe；也可用 `visualize` 的 `widget` 参数整件交付。
+- **Structured charts** — the `spec` of the `visualize` tool, rendered with echarts (line / bar / area / pie / scatter).
+- **SVG / HTML widgets** — the model writes &#96;&#96;&#96;svg / &#96;&#96;&#96;html fences that render **token-by-token, streaming** into a sandboxed iframe; it can also deliver a complete widget via the `widget` parameter of `visualize`.
 
-它复用 DSH **已有**的 `assistant/chunk` 与 `tool/call` + `tool/result` 事件，**不改 DSH 源码**。
+It reuses DSH's **existing** `assistant/chunk` and `tool/call` + `tool/result` events, and **does not change DSH source**.
 
-## 特性
+## Features
 
-- **两类产物、三条交付路径**：`visualize(spec)` 出图表；正文 ```svg / ```html 围栏**流式**出组件；`visualize(widget)` 出完整组件。
-- **流式渲染**：复用已有 `assistant/chunk` 事件拿到逐 token 输出，组件随文本流**逐帧更新**。
-- **双端校验**：host `execute` 与客户端折叠共用**同一套纯函数解析器**（`chartspec` / `widget`），模型漂移不会静默通过。
-- **安全隔离**：组件代码**原样**插入 `sandbox=""` iframe + CSP `default-src 'none'`，无 sanitizer 可绕过。
-- **渲染体验**：图表主题采样 `--dsw-alias-*` 令牌；SVG 按固有宽高比自适应高度；卡片带「适应 / 1.5× / 2×」缩放与状态徽标（生成中 / 已截断 / 完成）。
-- **优雅降级**：任何校验 / 渲染失败都不留空白、不抛错——退回普通代码块或 JSON 卡。
-- **纯函数、可测试**：核心逻辑均为无 DSH 依赖的纯模块，97 个单测在 Node 里独立跑。
+- **Two kinds of output, three delivery paths**: `visualize(spec)` for charts; &#96;&#96;&#96;svg / &#96;&#96;&#96;html fences in the message body for **streaming** widgets; `visualize(widget)` for a complete widget.
+- **Streaming render**: reuses the existing `assistant/chunk` events to get token-by-token output, so the widget **updates frame by frame** as the text streams.
+- **Two-sided validation**: host `execute` and the client fold share **the same pure-function parsers** (`chartspec` / `widget`), so model drift cannot silently pass through.
+- **Security isolation**: widget code is inserted **verbatim** into a `sandbox=""` iframe + CSP `default-src 'none'`; there is no sanitizer to bypass.
+- **Rendering experience**: charts sample the `--dsw-alias-*` tokens; SVG widgets size to their intrinsic aspect ratio; cards carry a "fit / 1.5× / 2×" zoom and a status badge (generating / truncated / done).
+- **Graceful degradation**: any validation or render failure leaves no blank row and throws no error — it falls back to a plain code block or a JSON card.
+- **Pure, testable**: the core logic is all DSH-free pure modules — 97 unit tests run standalone in Node.
 
-## 效果一览
+## Preview
 
-**真实对话截图**（DSH Web 客户端内渲染）：
+**Real conversation screenshots** (rendered inside the DSH Web client):
 
 <div align="center">
-  <img src="docs/screenshot-chart.png" alt="结构化图表：visualize(spec) → echarts" width="720"><br>
-  <sub>结构化图表 · <code>visualize(spec)</code> → echarts（主题跟随 DSH）</sub>
+  <img src="docs/screenshot-chart.png" alt="Structured chart: visualize(spec) → echarts" width="720"><br>
+  <sub>Structured chart · <code>visualize(spec)</code> → echarts (follows the DSH theme)</sub>
 </div>
 
 <br>
 
 <div align="center">
-  <img src="docs/screenshot-widget.png" alt="HTML 组件：visualize(widget) → 沙箱 iframe" width="720"><br>
-  <sub>组件 · <code>visualize(widget)</code> → 沙箱 iframe</sub>
+  <img src="docs/screenshot-widget.png" alt="HTML widget: visualize(widget) → sandboxed iframe" width="720"><br>
+  <sub>Widget · <code>visualize(widget)</code> → sandboxed iframe</sub>
 </div>
 
-**更多渲染示例**（由插件自身代码渲染生成）：
+**More render samples** (rendered by the plugin's own code):
 
 <div align="center">
-  <img src="docs/preview-chart-bar.png" alt="柱状图" width="420">
-  <img src="docs/preview-widget-svg.png" alt="SVG 组件" width="420">
+  <img src="docs/preview-chart-bar.png" alt="Bar chart" width="420">
+  <img src="docs/preview-widget-svg.png" alt="SVG widget" width="420">
 </div>
 
 <div align="center">
-  <img src="docs/preview-widget-html.png" alt="HTML 组件" width="420">
-  <img src="docs/preview-stream.gif" alt="流式渲染 GIF" width="420">
+  <img src="docs/preview-widget-html.png" alt="HTML widget" width="420">
+  <img src="docs/preview-stream.gif" alt="Streaming render GIF" width="420">
 </div>
 <br>
-<sub>左：柱状图 · 右：SVG 组件 · 下左：HTML 组件 · 下右：流式渲染（```svg 围栏逐 token 边生成边更新）</sub>
+<sub>Left: bar chart · Right: SVG widget · Bottom-left: HTML widget · Bottom-right: streaming render (&#96;&#96;&#96;svg fence updated token by token)</sub>
 
-## 安装
+## Installation
 
-从 GitHub 直接安装（推荐，构建产物已入库）：
+Install directly from GitHub (recommended — the built artifacts are committed):
 
 ```sh
 dsh plugin --profile web add github:Moses14159/dsh-visualizer
 ```
 
-也可以先克隆、再从本地路径安装：
+Alternatively, clone it and install from the local path:
 
 ```sh
 git clone https://github.com/Moses14159/dsh-visualizer.git
 dsh plugin --profile web add /path/to/dsh-visualizer
 ```
 
-> - 从 Git 安装的插件会在安装时通过 `prepare` 脚本构建。pnpm 为安全起见会拦截构建脚本，若它提示授权，把对应的 `allowBuilds` 键加到 profile 的 `pnpm-workspace.yaml` 后再执行即可。
-> - 待 `dsh-visualizer` 发布到 npm 后，也可以用裸名安装：`dsh plugin --profile web add dsh-visualizer`。
-> - 需要本机已安装 DSH（`deepseek-harness`）并能启动 `dsh web`。依赖 DSH 的 `@deepseek-ai/dsh-client-runtime`、`@deepseek-ai/dsh-llm`、`@deepseek-ai/dsh-tools`（见 `peerDependencies`）。
+> - Plugins installed from Git build via their `prepare` script on install. For safety, pnpm blocks build scripts; if it prompts you, add the relevant `allowBuilds` key to the profile's `pnpm-workspace.yaml` and re-run.
+> - Once `dsh-visualizer` is published to npm, you can also install it by name: `dsh plugin --profile web add dsh-visualizer`.
+> - Requires DSH (`deepseek-harness`) installed locally and a working `dsh web`. It depends on DSH's `@deepseek-ai/dsh-client-runtime`, `@deepseek-ai/dsh-llm`, `@deepseek-ai/dsh-tools` (see `peerDependencies`).
 
-## 用法
+## Usage
 
-安装后，在对话里告诉模型即可：
+After installing, just tell the model in the conversation:
 
-- 说「**用 visualize 画个图**」→ 模型调用 `visualize` 工具传 `spec`；
-- 说「**写一个 SVG 徽章 / HTML 组件**」→ 模型在正文直接流式输出 ```svg / ```html 围栏，**生成过程中即可看到逐帧渲染**；
-- 模型也可用 `visualize` 传 `widget` 参数**整件交付**（经 host 校验、持久化、可重放）。
+- Say "**draw a chart with visualize**" → the model calls `visualize` with a `spec`;
+- Say "**write an SVG badge / HTML widget**" → the model streams &#96;&#96;&#96;svg / &#96;&#96;&#96;html fences directly in the reply, and you see it render **frame by frame as it generates**;
+- The model can also pass a `widget` parameter to `visualize` to deliver a **complete widget** (validated, persisted, and replayable on the host).
 
-### 工具载荷
+### Tool payloads
 
-`visualize` 二选一：
+`visualize` takes exactly one of:
 
 ```jsonc
-// 结构化图表
+// Structured chart
 { "spec": {
     "kind": "bar",                    // bar | line | area | pie | scatter
-    "title": "深圳 · 未来 7 天气温",
-    "xAxis": ["周六", "周日", "周一", "周二", "周三", "周四", "周五"],
+    "title": "Shenzhen · 7-day temperature",
+    "xAxis": ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"],
     "yName": "°C",
-    "series": [{ "name": "最高温", "data": [32, 32, 30, 31, 29, 31, 32] }]
+    "series": [{ "name": "Max", "data": [32, 32, 30, 31, 29, 31, 32] }]
 } }
 ```
 
 ```jsonc
-// SVG / HTML 组件
-{ "widget": { "kind": "svg", "code": "<svg ...>…</svg>", "title": "卡片标题" } }
+// SVG / HTML widget
+{ "widget": { "kind": "svg", "code": "<svg ...>…</svg>", "title": "Card title" } }
 ```
 
-### 流式围栏
+### Streaming fence
 
 ````text
 ```svg
 <svg width="360" height="200" viewBox="0 0 360 200" xmlns="…">
-  …逐 token 边生成边渲染…
+  …rendered token by token…
 </svg>
 ```
 ````
 
-## 示例
+## Examples
 
-在对话里直接这样说，就能看到效果（这些图取自真实对话）。
+Say these directly in the conversation to see the effect (the images are from real conversations).
 
-### 生成一张天气卡片
+### Generate a weather card
 
-> 帮我生成一张深圳现在的天气卡片
+> Help me generate a weather card for Shenzhen right now
 
-模型会调用 `visualize` 传 `widget`（HTML），渲染成沙箱组件卡片：
-
-<div align="center">
-  <img src="docs/screenshot-widget.png" alt="天气卡片" width="660"><br>
-  <sub><code>visualize(widget)</code> · 沙箱 iframe 渲染的 HTML 卡片</sub>
-</div>
-
-### 画一个折线图
-
-> 用 visualize 画一张北京明天 24 小时的气温变化图
-
-模型会传 `spec`（`line`），用 echarts 渲染：
+The model calls `visualize` with a `widget` (HTML) and renders it as a sandboxed widget card:
 
 <div align="center">
-  <img src="docs/screenshot-chart.png" alt="折线图" width="660"><br>
-  <sub><code>visualize(spec)</code> · echarts 渲染（主题跟随 DSH）</sub>
+  <img src="docs/screenshot-widget.png" alt="Weather card" width="660"><br>
+  <sub><code>visualize(widget)</code> · an HTML card rendered in a sandboxed iframe</sub>
 </div>
 
-### 边生成边渲染（流式）
+### Draw a line chart
 
-> 写一个深圳实时天气的 SVG 卡片
+> Use visualize to draw a chart of tomorrow's 24-hour temperature change in Beijing
 
-模型会在正文写 ```svg 围栏，边生成边渲染：
+The model passes a `spec` (`line`) and renders it with echarts:
 
 <div align="center">
-  <img src="docs/preview-stream.gif" alt="流式渲染 GIF" width="440"><br>
-  <sub>正文 <code>```svg</code> 围栏 · 逐 token 流式渲染</sub>
+  <img src="docs/screenshot-chart.png" alt="Line chart" width="660"><br>
+  <sub><code>visualize(spec)</code> · echarts render (follows the DSH theme)</sub>
 </div>
 
-### 一次要多种
+### Render as it streams
 
-> 同时画一张柱状图、一张饼图，再写一个天气卡片
+> Write an SVG card for Shenzhen's current weather
 
-模型会**多次**调用 `visualize`，分别产出图表与组件，在对话流里排开。
+The model writes a &#96;&#96;&#96;svg fence in the reply and renders it as it streams:
 
-> 💡 提示：以上示例要求模型**已加载 `visualize` 工具**（安装插件后即注册）。若模型没有主动用该工具，直接描述你想要的内容即可，它会优先调用 `visualize`。
+<div align="center">
+  <img src="docs/preview-stream.gif" alt="Streaming render GIF" width="440"><br>
+  <sub>a &#96;&#96;&#96;svg fence in the reply · token-by-token streaming render</sub>
+</div>
 
-## 架构
+### Ask for several at once
 
-![架构图](docs/architecture.svg)
+> Draw a bar chart, a pie chart, and a weather card at the same time
 
-### 两条交付路径
+The model calls `visualize` **multiple times** and lays out the charts and widgets in the conversation flow.
 
-| 产物 | 触发 | 会话事件 | 折叠 | 渲染 |
+> 💡 Tip: these examples require the model to have the **`visualize` tool loaded** (registered once the plugin is installed). If the model doesn't reach for it, just describe what you want — it will prefer calling `visualize`.
+
+## Architecture
+
+![Architecture](docs/architecture.svg)
+
+### Two delivery paths
+
+| Output | Trigger | Session events | Folded into | Render |
 |---|---|---|---|---|
-| 结构化图表 | `visualize(spec)` | tool/call + tool/result | `visualizer-chart` | echarts |
-| 组件（整件交付） | `visualize(widget)` | tool/call + tool/result | `visualizer-widget` | 沙箱 iframe |
-| 组件（流式） | 正文 ```svg / ```html | `assistant/chunk` | `visualizer-widget`（逐帧更新） | 沙箱 iframe |
+| Structured chart | `visualize(spec)` | tool/call + tool/result | `visualizer-chart` | echarts |
+| Widget (delivered) | `visualize(widget)` | tool/call + tool/result | `visualizer-widget` | sandboxed iframe |
+| Widget (streamed) | &#96;&#96;&#96;svg / &#96;&#96;&#96;html fences | `assistant/chunk` | `visualizer-widget` (frame updates) | sandboxed iframe |
 
-### 为什么这个形态可行（源码级事实）
+### Why this shape works (source-level facts)
 
-- `assistant/chunk` 是**已存在**的会话事件家族：agent-loop 把每个 `StreamChunk` 落盘为 `{ turn, step, chunk }`，Web 客户端的流式文本正是折叠这些事件得来的——插件复用同一事件流即可拿到逐 token 输出，**无需新增 host 侧事件家族**。
-- `conversationEvents` 是 cordis `Service`，外部插件可 inject；`visualizer-widget` 与内置 `assistant-step` **并行**折叠同一批 `assistant/chunk` 事件，互不干扰。
-- `conversation.chat.node` 是 keyed slot（`replaceRisk: 'none'`），外部插件按字符串名注册 `{ key: 'visualizer-chart' | 'visualizer-widget' }` 即增量贡献。
-- `ChatNodeViewProps` / `ConversationNodeDefinition` / `ChatNodeDataMap` 都是**纯类型**，构建期擦除，不触发客户端 bundle 的纯度门。
-- **确定性**：`match` 只读当前事件；同一 Context 每个事件携带或独立推导同一稳定 id（`step:<turn>:<step>` / `widget:<callId>`）；`update` 按日志 `seq` 折叠，**可重放**。
+- `assistant/chunk` is an **existing** session event family: the agent-loop logs each `StreamChunk` as `{ turn, step, chunk }`, and the web client's streaming text is exactly a fold of these events — the plugin reuses the same stream to obtain token-by-token output, **without adding a new host-side event family**.
+- `conversationEvents` is a cordis `Service` an external plugin can inject; `visualizer-widget` folds the same batch of `assistant/chunk` events **in parallel** with the built-in `assistant-step`, without interference.
+- `conversation.chat.node` is a keyed slot (`replaceRisk: 'none'`); registering a string key — `{ key: 'visualizer-chart' | 'visualizer-widget' }` — is an additive contribution.
+- `ChatNodeViewProps` / `ConversationNodeDefinition` / `ChatNodeDataMap` are all **pure types**, erased at build time, so they don't trip the client bundle's purity gate.
+- **Determinism**: `match` reads only the current event; every event of one Context carries or independently derives the same stable id (`step:<turn>:<step>` / `widget:<callId>`); `update` folds one Match per log `seq`, so it is **replayable**.
 
-## 安全边界
+## Security boundary
 
-| 层 | 处理 |
+| Layer | Handling |
 |---|---|
-| 模型 → spec / widget | host `execute` 用 `parseChartSpec` / `parseWidgetSpec` 校验；非法载荷拒绝执行（工具报错） |
-| 正文流 → widget | 客户端 `WidgetScanner` 只认行首 ```svg / ```html 围栏；组件代码**不做标记校验**（流式中任意字节都可能是合法前缀），安全边界在渲染侧 |
-| session log → 客户端 | Definition 的 `update`/`fallback` 对结果文本**再次**解析；`assistant/message` 全文是冷回放的恢复源 |
-| 渲染（组件） | 双层隔离：iframe `sandbox=""`（禁脚本/同源/表单/弹窗/导航，opaque origin）+ srcdoc 注入 CSP `default-src 'none'`；代码**原样插入**，无 sanitizer 可绕过 |
-| 渲染（图表） | ChartSpec 是纯数据 → echarts `setOption`；无 HTML/SVG 注入面 |
+| Model → spec / widget | host `execute` validates with `parseChartSpec` / `parseWidgetSpec`; invalid payloads are rejected (the tool errors) |
+| Text stream → widget | the client `WidgetScanner` only recognizes line-leading &#96;&#96;&#96;svg / &#96;&#96;&#96;html fences; widget code is **not markup-validated** (any byte can be a legal prefix while streaming), so the security boundary lives at the render side |
+| session log → client | the Definition's `update`/`fallback` **re-parses** the result text; the full `assistant/message` is the cold-replay recovery source |
+| Render (widget) | two layers of isolation: iframe `sandbox=""` (no scripts / same-origin / forms / popups / navigation, opaque origin) + an injected CSP `default-src 'none'` in the srcdoc; code is inserted **verbatim**, so there is no sanitizer to bypass |
+| Render (chart) | ChartSpec is pure data → echarts `setOption`; no HTML/SVG injection surface |
 
-任何校验 / 渲染失败都**降级**（不渲染该节点 / 围栏仍以普通代码块显示 / JSON 卡），绝不让对话流出现空白行或抛错中断。
+Any validation or render failure **degrades** (the node isn't rendered / the fence stays a plain code block / a JSON card) — never a blank row or a thrown error in the chat.
 
-## 载荷上限
+## Payload limits
 
-- **图表**：≤ 8 个 series、≤ 500 个点、标签 ≤ 120 字符；
-- **组件**：单件 ≤ 128 KB（UTF-8）、每节点 ≤ 12 件 / 总计 ≤ 512 KB，超限截断或省略并显示「已截断」徽标。
+- **Charts**: ≤ 8 series, ≤ 500 points, ≤ 120 characters per label;
+- **Widgets**: ≤ 128 KB per item (UTF-8), ≤ 12 items / ≤ 512 KB total per node; overflow is truncated or omitted and shows a "truncated" badge.
 
-## 开发
+## Development
 
 ```sh
 pnpm install
-pnpm test        # 纯函数单测（97 用例）
+pnpm test        # pure-function unit tests (97 cases)
 pnpm typecheck   # tsc --noEmit
-pnpm build       # tsdown：host + replay + 两渠道 client bundle
-pnpm render-demo # 重新生成 docs/ 里的演示图（需本机 Chrome）
+pnpm build       # tsdown: host + replay + both channel client bundles
+pnpm render-demo # regenerate docs/ demo images (needs a local Chrome)
 ```
 
-- 纯函数模块（`chartspec` / `widget` / `to-echarts` / `to-iframe` / `svg-geometry` / 两个 fold）**不 import DSH、不触达 DOM**，因此能在 Node 里独立测试。
-- 客户端聚合入口是 `src/client/index.tsx`；host 工具入口是 `src/index.ts`。
+- The pure-function modules (`chartspec` / `widget` / `to-echarts` / `to-iframe` / `svg-geometry` / the two folds) **don't import DSH or touch the DOM**, so they can be tested standalone in Node.
+- The client entry is `src/client/index.tsx`; the host tool entry is `src/index.ts`.
 
-## 已知边界
+## Known limitations
 
-- **图表仍是「整图出现」**：ChartSpec 经工具调用交付，没有逐 token 流式图表（工具参数本身不是流式的）；围栏组件才是流式路径。
-- **围栏原文与组件卡并存**：模型写出的代码块仍会按普通 markdown 代码块渲染（作为「源码」视图），组件卡在流中增量渲染——两者不互斥。
-- **组件是静态的**：sandbox 禁脚本，交互式组件（按钮逻辑、动画脚本）不会执行；需要交互时请用图表或让组件纯展示。
-- **不包含 mermaid**：v1 只支持 svg/html 两种围栏，mermaid 图请走普通代码块或后续版本。
-- **围栏必须在行首**（≤ 3 空格缩进），行内 ```svg 不是围栏；围栏内容里的 ``` 单独成行会闭合围栏（CommonMark 语义）。
-- echarts 按需 `import('echarts')` 内联进客户端 bundle（registry 路由只服务单文件，暂不能 code-split）。
+- **Charts still appear "whole"**: ChartSpec is delivered via a tool call, so there is no token-by-token streaming chart (tool arguments aren't streamable); the fence widgets are the streaming path.
+- **The fence source and the widget card coexist**: the code block the model writes still renders as a normal markdown code block (as the "source" view), while the widget card renders in the stream — they are not mutually exclusive.
+- **Widgets are static**: the sandbox disables scripts, so interactive components (button logic, animated scripts) won't run; use a chart or a purely presentational widget when you need interaction.
+- **No mermaid**: v1 supports only svg/html fences; render mermaid diagrams as plain code blocks or in a later version.
+- **Fences must be at line start** (≤ 3 spaces of indent); an inline &#96;&#96;&#96;svg is not a fence, and a lone &#96;&#96;&#96; line inside the content closes the fence (CommonMark semantics).
+- echarts is lazily `import('echarts')` and inlined into the client bundle (the registry route serves a single file, so it can't be code-split yet).
 
-## 兼容性
+## Compatibility
 
-- **Node**：`>= 20`；**DSH**：通过外部插件机制加载（profile bundle patch）。
-- **peer 依赖**：`@deepseek-ai/cordis`、`@deepseek-ai/dsh-client-runtime`、`@deepseek-ai/dsh-client-ui-conversation`、`@deepseek-ai/dsh-llm`、`@deepseek-ai/dsh-tools`、`react`、`react-dom`。
+- **Node**: `>= 20`; **DSH**: loaded through the external-plugin mechanism (profile bundle patch).
+- **peer dependencies**: `@deepseek-ai/cordis`, `@deepseek-ai/dsh-client-runtime`, `@deepseek-ai/dsh-client-ui-conversation`, `@deepseek-ai/dsh-llm`, `@deepseek-ai/dsh-tools`, `react`, `react-dom`.
 
-## 许可
+## License
 
 [MIT](LICENSE) · Copyright (c) 2026 Moses14159
